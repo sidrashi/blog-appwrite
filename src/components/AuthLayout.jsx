@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import  aniloader  from "../assets/aniloader.gif";
-import {Container} from "./index"
+import aniloader from "../assets/aniloader.gif";
+import { Container } from "./index";
 
 function AuthLayout({ children, authentication = true }) {
   const navigate = useNavigate();
@@ -15,12 +15,17 @@ function AuthLayout({ children, authentication = true }) {
     } else if (!authentication && authStatus !== authentication) {
       navigate("/");
     }
-    return () => {
-      setLoader(false);
-    };
+    setLoader(false);
   }, [navigate, authStatus, authentication]);
 
-  return loader ? <Container> <img className="mx-auto" src={aniloader} alt="Loading..." /> </Container> : <> {children}</>;
+  return loader ? (
+    <Container>
+      {" "}
+      <img className="mx-auto" src={aniloader} alt="Loading..." />{" "}
+    </Container>
+  ) : (
+    <> {children}</>
+  );
 }
 
 export default AuthLayout;

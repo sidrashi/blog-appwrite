@@ -5,6 +5,8 @@ import { login, logout } from "./store/authSlice";
 import { Header, Footer } from "./components";
 import "./App.css";
 import { Outlet } from "react-router-dom";
+import {Container} from "./components";
+import aniloader from "./assets/aniloader.gif"
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,7 @@ function App() {
       </div>
     </div>
   ) : (
-    <h1>Loading</h1>
+    <Container> <img className="mx-auto" src={aniloader} alt="Loading..." /> </Container>
   );
 }
 

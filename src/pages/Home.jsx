@@ -1,15 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import service from "../appwrite/config";
 import { Container, PostCard } from "../components";
+import { useDispatch, useSelector } from "react-redux";
+import { setActivePosts, setActivePostsNeedsRefresh } from "../store/postSlice";
 
 function Home() {
-  const [posts, setPosts] = useState([]);
+  const dispatch = useDispatch();
+  const posts = useSelector((state) => state.posts.activePosts);
+  const needsRefresh = useSelector((state) => state.posts.activePostsNeedsRefresh)
+
   useEffect(() => {
-    service.getPosts().then((posts) => {
-      if (posts) {
-        setPosts(posts.rows);
-      }
-    });
+    if (posts.length === 0 || needsRefresh) {
+      service.getPosts().then((posts) => {
+        if (posts) {
+          dispatch(setActivePosts(posts.rows));
+          dispatch(setActivePostsNeedsRefresh(false))
+        }
+      });
+    }
   }, []);
 
   if (posts.length === 0) {
@@ -19,7 +27,7 @@ function Home() {
           <div className="flex flex-wrap">
             <div className="p-2 w-full">
               <h1 className="text-2xl font-bold hover:text-gray-500">
-                Login to read posts
+                No posts to show, please login or add post
               </h1>
             </div>
           </div>

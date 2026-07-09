@@ -1,6 +1,7 @@
 import { useDispatch } from "react-redux";
 import authService from "../../appwrite/auth";
 import { logout } from "../../store/authSlice";
+import { clearPosts } from "../../store/postSlice";
 
 function LogoutBtn() {
   const dispatch = useDispatch();
@@ -8,6 +9,7 @@ function LogoutBtn() {
   const logoutHandler = () => {
     authService.logout().then(() => {
       dispatch(logout());
+      dispatch(clearPosts())
     });
   };
   return (

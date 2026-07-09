@@ -1,9 +1,10 @@
 import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import service from "../../appwrite/config";
 import { Button, Input, RTE, Select } from "../index";
+import { setActivePostsNeedsRefresh, setAllPostsNeedsRefresh } from "../../store/postSlice";
 
 function PostForm({ post }) {
   const { register, handleSubmit, watch, setValue, getValues, control } =
@@ -16,6 +17,7 @@ function PostForm({ post }) {
       },
     });
   const navigate = useNavigate();
+  const dispatch = useDispatch()
   const userData = useSelector((state) => state.auth.userData);
 
   const submit = async (data) => {
@@ -32,6 +34,8 @@ function PostForm({ post }) {
         featuredImage: file ? file.$id : undefined,
       });
       if (dbPost) {
+        dispatch(setActivePostsNeedsRefresh(true))
+        dispatch(setAllPostsNeedsRefresh(true))
         navigate(`/post/${dbPost.$id}`);
       }
     } else {
@@ -46,6 +50,8 @@ function PostForm({ post }) {
         });
 
         if (dbPost) {
+          dispatch(setActivePostsNeedsRefresh(true))
+          dispatch(setAllPostsNeedsRefresh(true))
           navigate(`/post/${dbPost.$id}`);
         }
       }

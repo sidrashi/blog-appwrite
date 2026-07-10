@@ -1,10 +1,13 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import service from "../../appwrite/config";
 import { Button, Input, RTE, Select } from "../index";
-import { setActivePostsNeedsRefresh, setAllPostsNeedsRefresh } from "../../store/postSlice";
+import {
+  setActivePostsNeedsRefresh,
+  setAllPostsNeedsRefresh,
+} from "../../store/postSlice";
 
 function PostForm({ post }) {
   const { register, handleSubmit, watch, setValue, getValues, control } =
@@ -17,44 +20,65 @@ function PostForm({ post }) {
       },
     });
   const navigate = useNavigate();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const userData = useSelector((state) => state.auth.userData);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const submit = async (data) => {
-    if (post) {
-      const file = data.image[0]
-        ? await service.uploadFile(data.image[0])
-        : null;
+    let fileId = null;
 
-      if (file) {
-        service.deleteFile(post.featuredImage);
-      }
-      const dbPost = await service.updatePost(post.$id, {
-        ...data,
-        featuredImage: file ? file.$id : undefined,
-      });
-      if (dbPost) {
-        dispatch(setActivePostsNeedsRefresh(true))
-        dispatch(setAllPostsNeedsRefresh(true))
-        navigate(`/post/${dbPost.$id}`);
-      }
-    } else {
-      const file = await service.uploadFile(data.image[0]);
+    setError("");
+    setLoading(true);
 
-      if (file) {
-        const fileId = file.$id;
-        data.featuredImage = fileId;
-        const dbPost = await service.createPost({
+    try {
+      if (post) {
+        const file = data.image[0]
+          ? await service.uploadFile(data.image[0])
+          : null;
+
+        if (file) {
+          service.deleteFile(post.featuredImage);
+        }
+        const dbPost = await service.updatePost(post.$id, {
           ...data,
-          userId: userData.$id,
+          featuredImage: file ? file.$id : undefined,
         });
-
         if (dbPost) {
-          dispatch(setActivePostsNeedsRefresh(true))
-          dispatch(setAllPostsNeedsRefresh(true))
+          dispatch(setActivePostsNeedsRefresh(true));
+          dispatch(setAllPostsNeedsRefresh(true));
           navigate(`/post/${dbPost.$id}`);
         }
+      } else {
+        const file = await service.uploadFile(data.image[0]);
+
+        if (file) {
+          fileId = file.$id;
+          data.featuredImage = fileId;
+          const dbPost = await service.createPost({
+            ...data,
+            userId: userData.$id,
+          });
+
+          if (dbPost) {
+            dispatch(setActivePostsNeedsRefresh(true));
+            dispatch(setAllPostsNeedsRefresh(true));
+            navigate(`/post/${dbPost.$id}`);
+          }
+        }
       }
+    } catch (error) {
+      if (fileId) {
+        await service.deleteFile(fileId);
+      }
+
+      if (error.code === 409) {
+        setError("A post with this title already exists.");
+      } else {
+        setError("Something went wrong.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,7 +106,7 @@ function PostForm({ post }) {
         <Input
           label="Title :"
           placeholder="Title"
-          className="mb-4"
+          className={`mb-4  ${error ? "border-red-500" : ""}`}
           {...register("title", { required: true })}
         />
         <Input
@@ -126,12 +150,14 @@ function PostForm({ post }) {
           className="mb-4 w-full"
           {...register("status", { required: true })}
         />
+        {error && <p className="text-red-600 my-2 text-center">{error}</p>}
         <Button
           type="submit"
           bgColor={post ? "bg-green-500" : undefined}
           className="w-full"
+          disabled={loading}
         >
-          {post ? "Update" : "Submit"}
+          {loading ? "Submitting...." : `${post ? "Update" : "Submit"}`}
         </Button>
       </div>
     </form>

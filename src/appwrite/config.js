@@ -31,6 +31,7 @@ export class Service {
       );
     } catch (error) {
       console.log("Appwrite service :: createPost :: error", error);
+      throw error;
     }
   }
 
@@ -95,7 +96,7 @@ export class Service {
 
   async uploadFile(file) {
     try {
-      const compressedFile = await compressImage(file)
+      const compressedFile = await compressImage(file);
 
       return await this.bucket.createFile(
         conf.appwriteBucketId,
@@ -118,7 +119,7 @@ export class Service {
     }
   }
 
-   getFileView(fileId) {
+  getFileView(fileId) {
     return this.bucket.getFileView(conf.appwriteBucketId, fileId);
   }
 }
